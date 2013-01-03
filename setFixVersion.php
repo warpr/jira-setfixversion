@@ -13,7 +13,7 @@ class RemoteFieldValue {
 function soap_connect ()
 {
     $client = new SoapClient (dirname (__FILE__)."/jira.wsdl");
-    list ($username, $password) = explode (", ", file_get_contents (".jira-password"));
+    list ($username, $password) = explode (", ", file_get_contents (dirname (__FILE__)."/.jira-password"));
 
     $login = $client->login (trim ($username), trim ($password));
 
@@ -88,7 +88,8 @@ function set_fix_version ($issue, $next_version) {
     $issue_url = "http://tickets.musicbrainz.org/browse/".$issue->key;
     if ($fixVersion == $next_version->name)
     {
-        echo $issue_url." ($fixVersion)\n";
+        /* FIXME: add a --verbose switch to display this on request. */
+        /* echo $issue_url." ($fixVersion)\n"; */
         return;
     }
 
