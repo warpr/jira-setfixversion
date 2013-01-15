@@ -1,5 +1,7 @@
 <?php
 
+$verbose = True;
+
 class RemoteFieldValue {
     var $id;
     var $values = array();
@@ -37,7 +39,7 @@ function next_version ($name)
     {
         if (preg_match ("/20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]/", $val->name, $matches))
         {
-            $candidates[$val->name] = $val;
+            $candidates[$matches[0]] = $val;
         }
     }
 
@@ -49,10 +51,9 @@ function next_version ($name)
     reset ($dates);
     while ($val = next ($dates))
     {
-        if ($val == $today)
+        if (strcmp ($val, $today) > 0)
         {
-            $release = next ($dates);
-            return empty ($release) ? NULL : $candidates[$release];
+            return $candidates[$val];
         }
 
         next ($dates);
@@ -88,8 +89,10 @@ function set_fix_version ($issue, $next_version) {
     $issue_url = "http://tickets.musicbrainz.org/browse/".$issue->key;
     if ($fixVersion == $next_version->name)
     {
-        /* FIXME: add a --verbose switch to display this on request. */
-        /* echo $issue_url." ($fixVersion)\n"; */
+        if ($verbose)
+        {
+            echo $issue_url." ($fixVersion)\n";
+        }
         return;
     }
 
@@ -100,8 +103,11 @@ function set_fix_version ($issue, $next_version) {
     echo $issue_url." ($fixVersion -> ".$new_issue->fixVersions[0]->name.")\n";
 }
 
-
 $next_version = next_version ("MBS");
+if ($verbose)
+{
+    echo "Next version is ".$next_version->name."\n";
+}
 
 $issues = fetch_issues ("MBS");
 
