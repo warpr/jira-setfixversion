@@ -1,5 +1,6 @@
 <?php
 
+$dryrun = False;
 $verbose = True;
 
 class RemoteFieldValue {
@@ -55,8 +56,6 @@ function next_version ($name)
         {
             return $candidates[$val];
         }
-
-        next ($dates);
     }
 
     return NULL;
@@ -80,6 +79,8 @@ function fetch_issues ($project)
 }
 
 function set_fix_version ($issue, $next_version) {
+    global $verbose, $dryrun;
+
     $fixVersion = "";
     if (!empty ($issue->fixVersions))
     {
@@ -96,14 +97,21 @@ function set_fix_version ($issue, $next_version) {
         return;
     }
 
-    list ($client, $login) = soap_connect ();
-    $actionParam = new RemoteFieldValue ('fixVersions', array('id' => $next_version->id));
-    $new_issue = $client->updateIssue ($login, $issue->key, array ($actionParam));
-
-    echo $issue_url." ($fixVersion -> ".$new_issue->fixVersions[0]->name.")\n";
+    if (!$dryrun)
+    {
+        list ($client, $login) = soap_connect ();
+        $actionParam = new RemoteFieldValue ('fixVersions', array('id' => $next_version->id));
+        $new_issue = $client->updateIssue ($login, $issue->key, array ($actionParam));
+        echo $issue_url." ($fixVersion -> ".$new_issue->fixVersions[0]->name.")\n";
+    }
 }
 
 $next_version = next_version ("MBS");
+if (empty ($next_version))
+{
+    echo "Could not determine next version.\n";
+}
+
 if ($verbose)
 {
     echo "Next version is ".$next_version->name."\n";
