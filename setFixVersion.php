@@ -38,27 +38,19 @@ function next_version ($name)
     $candidates = array ();
     foreach ($all_versions as $key => $val)
     {
-        if (preg_match ("/20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]/", $val->name, $matches))
+        if (!$val->released && preg_match ("/20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]/", $val->name, $matches))
         {
             $candidates[$matches[0]] = $val;
         }
     }
 
-    $today = strftime ("%Y-%m-%d");
+    if (empty ($candidates))
+        return NULL;
+
     $dates = array_keys ($candidates);
-    array_push ($dates, $today);
     sort ($dates);
 
-    reset ($dates);
-    while ($val = next ($dates))
-    {
-        if (strcmp ($val, $today) > 0)
-        {
-            return $candidates[$val];
-        }
-    }
-
-    return NULL;
+    return $candidates[$dates[0]];
 }
 
 function fetch_issues ($project)
