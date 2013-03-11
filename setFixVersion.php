@@ -1,7 +1,7 @@
+#!/usr/bin/php
 <?php
 
-$dryrun = False;
-$verbose = True;
+$verbose = FALSE;
 
 class RemoteFieldValue {
     var $id;
@@ -70,8 +70,8 @@ function fetch_issues ($project)
     return $issues;
 }
 
-function set_fix_version ($issue, $next_version) {
-    global $verbose, $dryrun;
+function set_fix_version ($dryrun, $issue, $next_version) {
+    global $verbose;
 
     $fixVersion = "";
     if (!empty ($issue->fixVersions))
@@ -96,22 +96,50 @@ function set_fix_version ($issue, $next_version) {
         $new_issue = $client->updateIssue ($login, $issue->key, array ($actionParam));
         echo $issue_url." ($fixVersion -> ".$new_issue->fixVersions[0]->name.")\n";
     }
+    else
+    {
+        echo $issue_url." ($fixVersion -> ".$next_version->name.")\n";
+    }
 }
 
-$next_version = next_version ("MBS");
-if (empty ($next_version))
+function main ($dryrun) {
+    global $verbose;
+
+    $next_version = next_version ("MBS");
+    if (empty ($next_version))
+    {
+        echo "Could not determine next version.\n";
+    }
+
+    if ($verbose)
+    {
+        echo "Next version is ".$next_version->name."\n";
+    }
+
+    $issues = fetch_issues ("MBS");
+
+    foreach ($issues as $key => $val)
+    {
+        set_fix_version ($dryrun, $issues[$key], $next_version);
+    }
+}
+
+function help ($argv) {
+    echo "Usage: ".$argv[0]." [--fix]\n";
+    echo "\n";
+    echo "\t--fix\tFix all the issues (default is just a dry run)\n";
+    echo "\n";
+}
+
+$dryrun = True;
+if ($argc > 1 && $argv[1] == "--fix")
 {
-    echo "Could not determine next version.\n";
+    $dryrun = False;
 }
 
-if ($verbose)
-{
-    echo "Next version is ".$next_version->name."\n";
+if ($argc > 1 && in_array($argv[1], array('--help', '-help', '-h', '-?'))) {
+    help ($argv);
+} else {
+    main ($dryrun);
 }
 
-$issues = fetch_issues ("MBS");
-
-foreach ($issues as $key => $val)
-{
-    set_fix_version ($issues[$key], $next_version);
-}
